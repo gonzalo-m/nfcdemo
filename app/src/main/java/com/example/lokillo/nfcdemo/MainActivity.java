@@ -19,16 +19,20 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         // check if device supports NFC
-        boolean isNFCSupported = getPackageManager().hasSystemFeature(PackageManager.FEATURE_NFC);
-        if (isNFCSupported) {
-            continueNFC();
+        if (isNFCSupported()) {
+            continueWithNFC();
         } else  {
             stopNFC();
         }
     }
 
-    private void continueNFC() {
+    private boolean isNFCSupported() {
+        return getPackageManager().hasSystemFeature(PackageManager.FEATURE_NFC);
+    }
+
+    private void continueWithNFC() {
         Log.i(TAG, "NFC is supported");
+        Toast.makeText(this, "NFC is supported", Toast.LENGTH_SHORT).show();
         // add NFC setting to UI
 
         // ask user to enable NFC, if not enabled
@@ -37,7 +41,7 @@ public class MainActivity extends Activity {
 
     private void stopNFC() {
         Log.i(TAG, "NFC not supported");
-//        Toast.makeText(this, "NFC is not supported", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "NFC is not supported", Toast.LENGTH_SHORT).show();
 
     }
 
