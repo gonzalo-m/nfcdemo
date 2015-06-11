@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.nfc.NdefMessage;
+import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
 import android.nfc.NfcManager;
 import android.nfc.Tag;
@@ -24,6 +25,7 @@ import android.widget.Toast;
 public class MainActivity extends Activity {
 
     static final String TAG = "NFC";
+    private boolean mLockTag;
 
     static final int REQUEST_CODE = 0;
 
@@ -45,7 +47,6 @@ public class MainActivity extends Activity {
         });
 
         nfcManager = (NfcManager) getSystemService(Context.NFC_SERVICE);
-
 
         // check if device supports NFC
         if (nfcManager != null) {
@@ -69,16 +70,17 @@ public class MainActivity extends Activity {
             startActivity(new Intent(Settings.ACTION_WIRELESS_SETTINGS));
         }
 
+    }
 
-
-
+    public boolean readTag() {
+        return false;
     }
 
     /**
-     * Writes an NdefMessage to a NFC tag.
+     * Writes an NDEF Message to a NFC tag.
      * @param msg the message to be written
      * @param tag the tag that stores the message
-     * @return true if write was successful; false otherwise.
+     * @return true if the write was successful; false otherwise.
      */
     public boolean writeTag(NdefMessage msg, Tag tag) {
         int size = msg.getByteArrayLength();
@@ -101,14 +103,36 @@ public class MainActivity extends Activity {
 
     }
 
-    public boolean readTag() {
-        return false;
-    }
 
+    /**
+     *
+     * @param id the id to be stored in the NDEF Message
+     * @return an NDEF Message from the given parameter
+     */
+    public NdefMessage toNdefMessage(int id) {
+        String msg = String.valueOf(id);
+        byte[] msgBytes = msg.getBytes();
+        NdefRecord msgRecord = new NdefRecord(NdefRecord.TNF_MIME_MEDIA, "Alarm.com".getBytes(),
+                new byte[]{}, msgBytes);
+        return new NdefMessage(msgRecord);
+    }
 
     @Override
     public void onNewIntent(Intent intent) {
-        Toast.makeText(MainActivity.this, "debug", Toast.LENGTH_SHORT).show();
+
+        if (intent.getAction() == NfcAdapter.ACTION_TAG_DISCOVERED) {
+            Toast.makeText(MainActivity.this, "debug", Toast.LENGTH_SHORT).show();
+            Tag detectedTag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+            Log.d(TAG, detectedTag.toString());
+            boolean succ = writeTag(toNdefMessage(77), detectedTag);
+            if (succ) {
+                Toast.makeText(MainActivity.this, "tag was successfully written", Toast.LENGTH_SHORT).show();
+
+            } else {
+                Toast.makeText(MainActivity.this, "failed", Toast.LENGTH_SHORT).show();
+
+            }
+        }
 
     }
 
@@ -156,6 +180,8 @@ public class MainActivity extends Activity {
         enableTagWrite();
 
     }
+
+    // https://kayrnt.wordpress.com/2012/12/03/read-write-lock-tags-in-your-android-app-androiddev/
 
 
 }
